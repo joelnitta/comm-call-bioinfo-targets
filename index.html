@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Introduction to {targets}</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Joel Nitta" />
+    <meta name="date" content="2022-01-12" />
+    <script src="libs/header-attrs-2.14/header-attrs.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+
+
+
+
+## Modular, reproducible bioinformatics workflows with the {targets} R package
+
+**Joel Nitta**
+
+ICSB Academy &lt;span style = 'font-size: 120%;'&gt;2022/06/31&lt;/span&gt;
+
+&lt;br&gt;&lt;br&gt;&lt;img src="https://docs.ropensci.org/targets/logo.svg" alt="drawing" height="350" style="float:right;margin:-200px 0px"&gt;
+
+&lt;br&gt;&lt;br&gt;&lt;br&gt;https://joelnitta.github.io/icsb-targets-intro
+
+---
+
+## Self-introduction
+
+.pull-left[
+@joel_nitta
+
+https://joelnitta.com
+
+- Project Research Associate @ [Tokyo University](http://iwasakilab.k.u-tokyo.ac.jp/)
+
+- Research interests: Ecology and evolution of __ferns__
+
+- Hobbies: Running (after my 6YO!)
+]
+
+.pull-right[
+&lt;img src="https://github.com/joelnitta/joelnitta-site/blob/master/static/media/headers/research_img2.jpg?raw=true" alt="drawing" height="400"/&gt;
+.small[Photo: J-Y Meyer]
+]
+
+---
+## Outline of today's talk
+
+### Part I
+
+- Introduction to {targets}
+
+- Live coding
+
+### Part II
+
+- How to use {targets} in bioinformatics
+
+- Demo: VCF workflow
+
+To follow along with live coding, install [R](https://www.r-project.org/), [RStudio](https://www.rstudio.com/products/rstudio/download/), and [targets](https://github.com/ropensci/targets)
+
+---
+class:inverse, center, middle
+
+# Part I
+
+---
+## Why {targets}?
+
+--
+
+### To make your code more reproducible
+
+---
+## What is reproducibility?
+
+--
+
+&gt; The ability for others (or your future self) to re-run your code and get the same results
+
+--
+
+- Not "yes" or "no"
+- Reproducibility = **mindset**
+- Many aspects
+  - Computing environment
+  - Data availability
+  - **Code automation**
+  
+---
+## Workflows in R
+
+![Hadley Wickham's data analysis workflow chart](images/workflow_1.png)
+
+**Which steps** need to be run **in what order**?
+
+.footnote[R for Data Science https://r4ds.had.co.nz/]
+
+---
+## Workflows in R
+
+![Hadley Wickham's data analysis workflow chart with icon showing part of it changed](images/workflow_2.png)
+
+If **one part** of a workflow changes, **how does it affect other parts?**
+
+**How much of it do we need to re-run?**
+
+---
+
+## What is {targets}?
+
+.pull-left[
+- Automates workflow
+
+- Only runs necessary steps
+
+- Can run workflow steps in parallel (speeds up analysis)
+
+- Provides proof that **results** are derived **from code**
+]
+
+&lt;img src="https://docs.ropensci.org/targets/logo.svg" alt="drawing" height="350" style="float:right"&gt;
+
+---
+## Resources
+
+- Github https://github.com/ropensci/targets
+
+- Package website https://docs.ropensci.org/targets/
+
+- User manual https://books.ropensci.org/targets/
+
+- Targetopia https://wlandau.github.io/targetopia/
+
+- {tarchetypes} website https://docs.ropensci.org/tarchetypes/
+
+- Discussion board https://github.com/ropensci/targets/discussions
+
+---
+## Live Coding
+
+- `tar_script()`: Write a generic workflow script
+
+- `tar_visnetwork()`: Visualize the state of the workflow
+
+- `tar_make()`: Run the workflow
+
+- `tar_load()`: Load a target from the workflow
+
+- `tar_outdated()`: List which steps will be run next time
+
+---
+class: inverse, center, middle
+
+# Live Coding
+
+---
+## Summary
+
+- Write your workflow plan in `_targets.R`
+
+- Run your workflow with `tar_make()`
+
+- Check the status of your workflow with `tar_visnetwork()`
+
+- Use `tar_file()` to track external files
+
+---
+## Example workflow
+
+Gapminder workflow
+
+- https://github.com/joelnitta/targets_gapminder_example
+
+---
+class:inverse, center, middle
+
+# Part II
+
+---
+## Using {targets} for bioinformatics
+
+{targets} was originally designed for workflows **in R**
+
+--
+
+How can we use {targets} in workflows that use **other software?**
+
+--
+
+- Input and output of each step is a **file** (or files)
+- Write **wrapper functions** to call programs from R
+- Use **docker** containers for external programs
+- Use **(mini)conda** to maintain R environment
+
+---
+## Workflow with files
+
+Store files in **`_targets/user/`**
+
+Allows you to snapshot your workflow state with [{gittargets}](https://github.com/ropensci/gittargets)
+
+If there is a long-running step (or steps), you could roll back to a particular
+code commit in {targets}, then checkout the matching workflow state 
+**without re-running everything**
+
+---
+## Workflow with files
+
+Store files in **`_targets/user/`**
+
+My recommendation:
+
+```
+_targets/
+└── user
+    ├── data
+    ├── intermediates
+    └── results
+```
+
+- `data`: raw data files
+- `intermediates`: output / input of intermediate steps
+- `results`: final output (e.g., manuscript)
+
+---
+## Wrapper functions
+
+R functions that call external programs.
+
+- `system()`: most basic form, just runs exactly the input given
+- `system2()`: slightly more complicated
+- **`processx::run()`**
+  - allows for asynchronous processes
+  - can specify different working directory
+  - redirection of `stderr` and `stderr`
+  - many other features
+
+Syntax:
+
+```r
+processx::run(command, args)
+```
+
+---
+## Use docker for external programs
+
+- Don't need to install program (and all of its dependencies)
+- Can specify / track version
+
+--
+
+We don't have time to cover details today
+
+Recommended resource: 
+- Carpentries Incubator Workshop ["Reproducible Computational Environments Using Containers"](https://carpentries-incubator.github.io/docker-introduction/index.html)
+
+---
+## Wrapping docker calls from R
+
+babelwhale R package: https://github.com/dynverse/babelwhale
+
+`babelwhale::run()` has similar syntax to `processx::run()`
+
+.pull-left[
+
+```r
+babelwhale::run(
+* container,
+  command, args)
+```
+]
+
+---
+## Loading files into docker: volume mounts
+
+In order to connect the docker container to your files, you need to **mount** the directory.
+
+```
+docker run -v /path/to/local/dir:/path/to/container/dir
+```
+---
+## Loading files into docker
+
+
+```r
+wd &lt;- getwd()
+
+babelwhale::run(
+  container = "alpine",
+  command = "ls",
+  args = c("/wd_in_docker", "-l", "-h"),
+* volumes = paste(wd, ":/wd_in_docker", sep = "")
+  )
+```
+
+This gets confusing with multiple files and folders...
+
+---
+## My fork of {babelwhale}
+
+Includes `run_auto_mount()` function to make it easier to mount files.
+
+**For any file or folder argument, just provide the local path and name it "file"**
+
+
+```r
+# Install my fork of babelwhale
+remotes::install("joelnitta/babelwhale@jnfeat")
+
+babelwhale::run_auto_mount(
+  container = "alpine",
+  command = "ls",
+* args = c(file = wd, "-l", "-h")
+  )
+```
+
+---
+## Example of run_auto_mount(): clean reads with fastp
+
+```r
+# Download some example read files
+download.file(
+  url = "https://raw.githubusercontent.com/OpenGene/fastp/master/testdata/R1.fq",
+  destfile = "R1.fq")
+download.file(
+  url = "https://raw.githubusercontent.com/OpenGene/fastp/master/testdata/R2.fq",
+  destfile = "R2.fq")
+
+babelwhale::run_auto_mount(
+  container = "quay.io/biocontainers/fastp:0.23.1--h79da9fb_0",
+  command = "fastp",
+  args = c(
+    "-i", file = "R1.fq",
+    "-I", file = "R2.fq",
+    "-o", file = "R1_trim.fq",
+    "-O", file = "R2_trim.fq",
+    "-h", file = "trim_report.html"
+  )
+)
+```
+
+---
+## Using run_auto_mount() in a wrapper function
+
+
+```r
+# Define function to trim read files
+trim_reads &lt;- function(
+  f_read_in, r_read_in,
+  f_read_out, r_read_out,
+  report) {
+  babelwhale::run_auto_mount(
+    container = 
+    "quay.io/biocontainers/fastp:0.23.1--h79da9fb_0",
+    command = "fastp",
+    args = c(
+      "-i", file = f_read_in,
+      "-I", file = r_read_in,
+      "-o", file = f_read_out,
+      "-O", file = r_read_out,
+      "-h", file = report
+      )
+  )
+  # Return the output file paths
+  c(f_read_out, r_read_out)
+}
+```
+---
+
+## Using run_auto_mount() in a wrapper function
+
+
+```r
+# Run function
+trim_reads(
+  "R1.fq", "R2.fq",
+  "R1_trim.fq", "R2_trim.fq",
+  "trim_report.html"
+)
+```
+
+---
+## Putting it together: Variant calling workflow
+
+- https://github.com/joelnitta/targets_vcf_example
+
+- Based on Data Carpentry ["Data Wrangling and Processing for Genomics"](https://datacarpentry.org/wrangling-genomics/04-variant_calling/index.html)
+
+---
+.pull-left[
+  Function
+
+```r
+sam_to_bam &lt;- function(
+  sam, out_dir) {
+  # Format output file
+  out_file &lt;- 
+    fs::path_file(sam) %&gt;%
+    fs::path_ext_remove() %&gt;%
+    fs::path_ext_set(".bam") %&gt;%
+    fs::path(out_dir, .)
+  # Run docker
+  run_auto_mount(
+    container_id = "quay.io/biocontainers/samtools:1.9--h91753b0_8",
+    command = "samtools",
+    args = c(
+      "view", "-S",
+      "-b", file = sam),
+    stdout = out_file
+  )
+  out_file
+}
+```
+]
+
+.pull-right[
+Workflow
+
+```r
+# Convert SAM to BAM
+  tar_file(
+    aligned_bam,
+    sam_to_bam(
+      aligned_sam,
+      out_dir = "results/bam"),
+    pattern = map(aligned_sam)
+  )
+```
+]
+
+---
+## One final detail: environment for R
+
+Docker is great for maintaining reproducible computing environments.
+
+But how do we maintain the **environment that is calling docker?** 🤔
+
+--
+
+Solution: use [conda](https://docs.conda.io/en/latest/miniconda.html) and [renv](https://rstudio.github.io/renv/articles/renv.html)
+
+---
+## conda
+
+Use an `environment.yml` file to define needed software:
+
+```
+name: bioinfo-example-env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - r-renv=0.14.*
+```
+
+---
+## conda
+
+- Install with `conda env create -f environment.yml`
+- Activate with `conda activate bioinfo-example-env`
+- Deactivate with `conda deactivate`
+
+---
+## renv
+
+Our conda environment includes R and the {renv} package, which is a package manager for R.
+
+{renv} uses a file called `renv.lock` to track R package versions. For example,
+
+```
+"Matrix": {
+      "Package": "Matrix",
+      "Version": "1.3-4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "4ed05e9c9726267e4a5872e09c04587c"
+    }
+```
+
+---
+## renv
+
+- Turn on with `renv::activate()`
+- Install packages with `renv::restore()`
+- Update packages with `renv::snapshot()`
+
+You should track `renv.lock` with git. This way, any changes to package versions are all documented.
+
+---
+## Variant calling workflow
+
+- https://github.com/joelnitta/targets_vcf_example
+
+Includes `environment.yml` and `renv.lock` files needed to reproduce analysis.
+
+To run the analysis, do:
+
+```
+conda activate bioinfo-example-env
+Rscript -e targets::tar_make()
+```
+
+---
+class: inverse, center, middle
+
+# Questions?
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
