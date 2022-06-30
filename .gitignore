@@ -1,2 +1,4 @@
 *.fq
 trim_report.html
+targets_vcf_example
+*.pptx
