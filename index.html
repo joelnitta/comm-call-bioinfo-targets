@@ -187,25 +187,37 @@ class:inverse, center, middle
 
 --
 
-How can we use {targets} in workflows that use **other software?**
+How can we use {targets} in workflows that use **other software?** 🤔
 
 --
 
 - Input and output of each step is a **file** (or files)
 - Write **wrapper functions** to call programs from R
 - Use **docker** containers for external programs
-- Use **(mini)conda** to maintain R environment
+- Use **conda** to maintain R environment
+- Use **renv** to maintain R packages
+
+---
+## Using {targets} for bioinformatics
+
+![](images/workflow_example.png)
 
 ---
 ## Workflow with files
+
+.pull-left[
 
 Store files in **`_targets/user/`**
 
 Allows you to snapshot your workflow state with [{gittargets}](https://github.com/ropensci/gittargets)
 
-If there is a long-running step (or steps), you could roll back to a particular
+If there is a long-running step, you could roll back to a particular
 code commit in {targets}, then checkout the matching workflow state 
 **without re-running everything**
+
+]
+
+&lt;img src="https://github.com/ropensci/gittargets/blob/main/man/figures/logo.png?raw=true" alt="drawing" height="350" style="float:right"&gt;
 
 ---
 ## Workflow with files
@@ -245,25 +257,88 @@ Syntax:
 processx::run(command, args)
 ```
 
+```r
+processx::run("ls", c("-l", "-h")) # same as `ls -l -h`
+```
+
 ---
 ## Use docker for external programs
 
-- Don't need to install program (and all of its dependencies)
-- Can specify / track version
+.pull-left[
 
---
+&gt; A Docker container ... is a lightweight, **standalone**, executable **package of software** that includes everything needed to run an application
 
-We don't have time to cover details today
+- **Don't need to install program (and all of its dependencies)**
+
+]
+
+.pull-right[
+&lt;img src="https://www.docker.com/wp-content/uploads/2022/03/Moby-logo.png" alt="drawing" height="200" style="float:right"&gt;
+]
+
+.footnote[https://www.docker.com/resources/what-container/]
+
+---
+## Use docker for external programs
+
+- Docker image for `fastp`:
+
+```
+quay.io/biocontainers/fastp:0.23.1--h79da9fb_0
+```
+
+Part after `:` is the tag (version, here `0.23.1`)
+
+- Instead of installing `fastp` from sratch, can do:
+
+```
+docker run quay.io/biocontainers/fastp:0.23.1--h79da9fb_0 fastp
+```
+
+---
+## Use docker for external programs
+
+.pull-left[
+We don't have time to cover details of Docker today
 
 Recommended resource: 
 - Carpentries Incubator Workshop ["Reproducible Computational Environments Using Containers"](https://carpentries-incubator.github.io/docker-introduction/index.html)
+]
+
+.pull-right[
+&lt;img src="https://www.docker.com/wp-content/uploads/2022/03/Moby-logo.png" alt="drawing" height="200" style="float:right"&gt;
+]
+
+---
+## Where to find containers
+
+- **Bioconda** https://bioconda.github.io/
+
+- Biocontainers https://biocontainers.pro/
+
+- Docker Hub* https://hub.docker.com/
+
+All containers in Bioconda are also in Biocontainers
+
+I find the search interface in **Bioconda** easier to use
+  - look for `(see .../tags for valid values for &lt;tag&gt;)`
+
+Containers in Bioconda and Biocontainers are **actively maintained and tested**
+
+*Containers in Docker Hub come with no guarantees
+
+---
+## If you can't find a container...
+
+[Roll your own](https://carpentries-incubator.github.io/docker-introduction/creating-container-images/index.html) (not covered here)
+
 
 ---
 ## Wrapping docker calls from R
 
 babelwhale R package: https://github.com/dynverse/babelwhale
 
-`babelwhale::run()` has similar syntax to `processx::run()`
+`babelwhale::run()` has similar syntax to `processx::run()`, but adds the container (image) name
 
 .pull-left[
 
@@ -272,16 +347,30 @@ babelwhale::run(
 * container,
   command, args)
 ```
+
+
+```r
+babelwhale::run(
+* "alpine",
+  "ls", "-h")
+```
 ]
 
 ---
-## Loading files into docker: volume mounts
+## Loading files into docker: mounting
 
 In order to connect the docker container to your files, you need to **mount** the directory.
 
 ```
 docker run -v /path/to/local/dir:/path/to/container/dir
 ```
+
+.center[
+&lt;img src="https://miro.medium.com/max/816/1*yrt2ZHCjW7w_5wyO5twX8Q.png" alt="drawing" height="230"&gt;
+]
+
+.small[https://bikramat.medium.com/docker-volume-63c50635e80c]
+
 ---
 ## Loading files into docker
 
@@ -292,7 +381,7 @@ wd &lt;- getwd()
 babelwhale::run(
   container = "alpine",
   command = "ls",
-  args = c("/wd_in_docker", "-l", "-h"),
+  args = c("/wd_in_docker", "-h"),
 * volumes = paste(wd, ":/wd_in_docker", sep = "")
   )
 ```
@@ -314,7 +403,7 @@ remotes::install("joelnitta/babelwhale@jnfeat")
 babelwhale::run_auto_mount(
   container = "alpine",
   command = "ls",
-* args = c(file = wd, "-l", "-h")
+* args = c(file = wd, "-h")
   )
 ```
 
@@ -377,22 +466,17 @@ trim_reads &lt;- function(
 ```r
 # Run function
 trim_reads(
-  "R1.fq", "R2.fq",
-  "R1_trim.fq", "R2_trim.fq",
-  "trim_report.html"
+  f_read_in = "R1.fq", r_read_in = "R2.fq",
+  f_read_out = "R1_trim.fq", r_read_out = "R2_trim.fq",
+  report = "trim_report.html"
 )
 ```
 
 ---
-## Putting it together: Variant calling workflow
+## Combine functions.R and _targets.R
 
-- https://github.com/joelnitta/targets_vcf_example
-
-- Based on Data Carpentry ["Data Wrangling and Processing for Genomics"](https://datacarpentry.org/wrangling-genomics/04-variant_calling/index.html)
-
----
 .pull-left[
-  Function
+`functions.R`
 
 ```r
 sam_to_bam &lt;- function(
@@ -418,17 +502,22 @@ sam_to_bam &lt;- function(
 ]
 
 .pull-right[
-Workflow
+`_targets.R`
 
 ```r
-# Convert SAM to BAM
+library(targets)
+source("R/functions.R")
+
+tar_plan(
+  # Convert SAM to BAM
   tar_file(
     aligned_bam,
     sam_to_bam(
       aligned_sam,
-      out_dir = "results/bam"),
+      out_dir = "_targets/user/intermediates/bam"),
     pattern = map(aligned_sam)
   )
+)
 ```
 ]
 
@@ -446,6 +535,17 @@ Solution: use [conda](https://docs.conda.io/en/latest/miniconda.html) and [renv]
 ---
 ## conda
 
+&gt; Conda is an open source **package management system** ... It was created for Python programs, but it can package and distribute **software for any language**.
+
+We don't have time to cover details today.
+
+Recommended resource: Carpentries Incubator Workshop ["Introduction to Conda for (Data) Scientists"](https://carpentries-incubator.github.io/introduction-to-conda-for-data-scientists/)
+
+.footnote[https://docs.conda.io/en/latest/]
+
+---
+## conda
+
 Use an `environment.yml` file to define needed software:
 
 ```
@@ -455,22 +555,31 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - r-renv=0.14.*
+  - r-renv=0.15.5
 ```
 
 ---
 ## conda
 
 - Install with `conda env create -f environment.yml`
-- Activate with `conda activate bioinfo-example-env`
+
+- Activate with `conda activate bioinfo-example-env` (`bioinfo-example-env` is name of example environment)
+
 - Deactivate with `conda deactivate`
+
+```
+(base) joelnitta$ conda activate bioinfo-example-env 
+(bioinfo-example-env) joelnitta$                       
+```
 
 ---
 ## renv
 
-Our conda environment includes R and the {renv} package, which is a package manager for R.
+Our conda environment includes R and the [{renv} package](https://rstudio.github.io/renv/articles/renv.html), which is a package manager for R.
 
-{renv} uses a file called `renv.lock` to track R package versions. For example,
+{renv} uses a file called `renv.lock` to track R package versions.
+
+For example,
 
 ```
 "Matrix": {
@@ -492,18 +601,23 @@ Our conda environment includes R and the {renv} package, which is a package mana
 You should track `renv.lock` with git. This way, any changes to package versions are all documented.
 
 ---
-## Variant calling workflow
+## Putting it all together: Variant calling workflow
 
 - https://github.com/joelnitta/targets_vcf_example
-
-Includes `environment.yml` and `renv.lock` files needed to reproduce analysis.
+  - Based on [Data Carpentry Genomics lesson](https://datacarpentry.org/wrangling-genomics/04-variant_calling/index.html)
 
 To run the analysis, do:
 
+```bash
+git clone https://github.com/joelnitta/targets_vcf_example
+cd targets_vcf_example
+conda env create -f environment.yml
+conda activate vcf-example-env
+Rscript -e 'renv::restore()'
+Rscript -e 'targets::tar_make()'
 ```
-conda activate bioinfo-example-env
-Rscript -e targets::tar_make()
-```
+
+When it's done, look for HTML report in `_targets/user/results/`
 
 ---
 class: inverse, center, middle
