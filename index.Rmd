@@ -345,7 +345,6 @@ Containers in Bioconda and Biocontainers are **actively maintained and tested**
 
 [Roll your own](https://carpentries-incubator.github.io/docker-introduction/creating-container-images/index.html) (not covered here)
 
-
 ---
 ## Wrapping docker calls from R
 
@@ -533,9 +532,7 @@ Docker is great for maintaining reproducible computing environments.
 
 But how do we maintain the **environment that is calling docker?** `r emo::ji("thinking")`
 
---
-
-Solution: use [conda](https://docs.conda.io/en/latest/miniconda.html) and [renv](https://rstudio.github.io/renv/articles/renv.html)
+- Solution: use [conda](https://docs.conda.io/en/latest/miniconda.html) and [renv](https://rstudio.github.io/renv/articles/renv.html)
 
 ---
 ## conda
