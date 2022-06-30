@@ -2,6 +2,8 @@
 
 Slides for [ISCB Academy workshop "Modular, reproducible bioinformatics workflows with the targets R package"](https://github.com/ISCB-Academy/bioinfo-targets/)
 
+Rendered slides are [here](https://joelnitta.github.io/iscb-targets-intro)
+
 ## License
 
 This work is licensed under a
