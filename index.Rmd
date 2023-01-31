@@ -87,22 +87,32 @@ class: inverse, center, middle
 
 .pull-left[
 
-Store files in **`_targets/user/`**
+- Use `tar_file()` in targets plan
 
-Allows you to snapshot your workflow state with [{gittargets}](https://github.com/ropensci/gittargets)
+- Store files in **`_targets/user/`**
 
-If there is a long-running step, you could roll back to a particular
-code commit in {targets}, then checkout the matching workflow state 
-**without re-running everything**
-
+- \*Bonus\*: Snapshot your targets cache with [{gittargets}](https://github.com/ropensci/gittargets)
 ]
 
 <img src="https://github.com/ropensci/gittargets/blob/main/man/figures/logo.png?raw=true" alt="drawing" height="350" style="float:right">
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+Allows you to roll back to a particular
+code commit in {targets}, then checkout the matching workflow state 
+**without re-running everything**
 
 ---
 ## Workflow with files
-
-Store files in **`_targets/user/`**
 
 My recommendation:
 
