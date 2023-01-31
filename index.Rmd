@@ -29,7 +29,7 @@ style_mono_accent(
 
 ## Using {targets} for bioinformatics pipelines
 
-**Joel Nitta**
+[**Joel Nitta**](https://www.joelnitta.com)
 
 rOpenSci Community Call <span style = 'font-size: 120%;'>2023-01-31</span>
 
