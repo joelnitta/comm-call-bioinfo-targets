@@ -46,7 +46,7 @@ rOpenSci Community Call <span style = 'font-size: 120%;'>2023-01-31</span>
 
 https://joelnitta.com
 
-- Project Research Associate @ [Tokyo University](http://iwasakilab.k.u-tokyo.ac.jp/)
+- Project Research Associate @ [The University of Tokyo](http://iwasakilab.k.u-tokyo.ac.jp/)
 
 - Research interests: Ecology and evolution of __ferns__
 ]
