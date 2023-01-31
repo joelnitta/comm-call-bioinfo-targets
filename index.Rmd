@@ -42,7 +42,7 @@ rOpenSci Community Call <span style = 'font-size: 120%;'>2023-01-31</span>
 ## Self-introduction
 
 .pull-left[
-@joel_nitta
+@joelnitta@fosstodon.org
 
 https://joelnitta.com
 
