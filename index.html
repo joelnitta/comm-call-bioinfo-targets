@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>Introduction to {targets}</title>
+    <title>Using {targets} for bioinformatics pipelines,</title>
     <meta charset="utf-8" />
     <meta name="author" content="Joel Nitta" />
-    <meta name="date" content="2022-01-12" />
+    <meta name="date" content="2023-01-31" />
     <script src="libs/header-attrs-2.14/header-attrs.js"></script>
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
   </head>
@@ -14,15 +14,15 @@
 
 
 
-## Modular, reproducible bioinformatics workflows with the {targets} R package
+## Using {targets} for bioinformatics pipelines
 
 **Joel Nitta**
 
-ICSB Academy &lt;span style = 'font-size: 120%;'&gt;2022/06/31&lt;/span&gt;
+rOpenSci Community Call &lt;span style = 'font-size: 120%;'&gt;2023-01-31&lt;/span&gt;
 
 &lt;br&gt;&lt;br&gt;&lt;img src="https://docs.ropensci.org/targets/logo.svg" alt="drawing" height="350" style="float:right;margin:-200px 0px"&gt;
 
-&lt;br&gt;&lt;br&gt;&lt;br&gt;https://joelnitta.github.io/icsb-targets-intro
+&lt;br&gt;&lt;br&gt;&lt;br&gt;https://joelnitta.github.io/comm-call-bioinfo-targets
 
 ---
 
@@ -37,7 +37,7 @@ https://joelnitta.com
 
 - Research interests: Ecology and evolution of __ferns__
 
-- Hobbies: Running (after my 6YO!)
+- Hobbies: Running (after my 7YO!)
 ]
 
 .pull-right[
@@ -46,156 +46,20 @@ https://joelnitta.com
 ]
 
 ---
-## Outline of today's talk
+## What is "bioinformatics"?
 
-### Part I
-
-- Introduction to {targets}
-
-- Live coding
-
-### Part II
-
-- How to use {targets} in bioinformatics
-
-- Demo: VCF workflow
-
-To follow along with live coding, install [R](https://www.r-project.org/), [RStudio](https://www.rstudio.com/products/rstudio/download/), and [targets](https://github.com/ropensci/targets)
+&lt;img src="https://raw.githubusercontent.com/nf-core/rnaseq/3.9/docs/images/nf-core-rnaseq_metro_map_grey.png" alt="drawing" height="400"/&gt;
+.small[https://sbc.shef.ac.uk/blog/nextflow/]
 
 ---
-class:inverse, center, middle
+## What is "bioinformatics"?
 
-# Part I
-
----
-## Why {targets}?
-
---
-
-### To make your code more reproducible
-
----
-## What is reproducibility?
-
---
-
-&gt; The ability for others (or your future self) to re-run your code and get the same results
-
---
-
-- Not "yes" or "no"
-- Reproducibility = **mindset**
-- Many aspects
-  - Computing environment
-  - Data availability
-  - **Code automation**
-  
----
-## Workflows in R
-
-![Hadley Wickham's data analysis workflow chart](images/workflow_1.png)
-
-**Which steps** need to be run **in what order**?
-
-.footnote[R for Data Science https://r4ds.had.co.nz/]
-
----
-## Workflows in R
-
-![Hadley Wickham's data analysis workflow chart with icon showing part of it changed](images/workflow_2.png)
-
-If **one part** of a workflow changes, **how does it affect other parts?**
-
-**How much of it do we need to re-run?**
-
----
-
-## What is {targets}?
-
-.pull-left[
-- Automates workflow
-
-- Only runs necessary steps
-
-- Can run workflow steps in parallel (speeds up analysis)
-
-- Provides proof that **results** are derived **from code**
-]
-
-&lt;img src="https://docs.ropensci.org/targets/logo.svg" alt="drawing" height="350" style="float:right"&gt;
-
----
-## Resources
-
-- Github https://github.com/ropensci/targets
-
-- Package website https://docs.ropensci.org/targets/
-
-- User manual https://books.ropensci.org/targets/
-
-- Targetopia https://wlandau.github.io/targetopia/
-
-- {tarchetypes} website https://docs.ropensci.org/tarchetypes/
-
-- Discussion board https://github.com/ropensci/targets/discussions
-
----
-## Live Coding
-
-- `tar_script()`: Write a generic workflow script
-
-- `tar_visnetwork()`: Visualize the state of the workflow
-
-- `tar_make()`: Run the workflow
-
-- `tar_load()`: Load a target from the workflow
-
-- `tar_outdated()`: List which steps will be run next time
+For the purposes of this talk, **any analysis that involves calling many programs outside of R** and **reading from / saving to external files**.
 
 ---
 class: inverse, center, middle
 
-# Live Coding
-
----
-## Summary
-
-- Write your workflow plan in `_targets.R`
-
-- Run your workflow with `tar_make()`
-
-- Check the status of your workflow with `tar_visnetwork()`
-
-- Use `tar_file()` to track external files
-
----
-## Example workflow
-
-Gapminder workflow
-
-- https://github.com/joelnitta/targets_gapminder_example
-
----
-class:inverse, center, middle
-
-# Part II
-
----
-## Using {targets} for bioinformatics
-
-{targets} was originally designed for workflows **in R**
-
---
-
-How can we use {targets} in workflows that use **other software?** 🤔
-
---
-
-- Input and output of each step is a **file** (or files)
-- Write **wrapper functions** to call programs from R
-- Use **docker** containers for external programs
-- Use **conda** to maintain R environment
-- Use **renv** to maintain R packages
+# Our goal: reproducible pipelines
 
 ---
 ## Using {targets} for bioinformatics
@@ -388,17 +252,14 @@ babelwhale::run(
 This gets confusing with multiple files and folders...
 
 ---
-## My fork of {babelwhale}
+## run_auto_mount()
 
-Includes `run_auto_mount()` function to make it easier to mount files.
+Makes it easier to mount files.
 
 **For any file or folder argument, just provide the local path and name it "file"**
 
 
 ```r
-# Install my fork of babelwhale
-remotes::install_github("joelnitta/babelwhale@jnfeat")
-
 babelwhale::run_auto_mount(
   container = "alpine",
   command = "ls",
