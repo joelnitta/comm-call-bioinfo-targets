@@ -57,9 +57,13 @@ https://joelnitta.com
 ]
 
 ---
-## Blog post
+## Resources
 
-https://www.joelnitta.com/posts/2021-11-16_r-bioinfo-flow/
+Blog post
+- https://www.joelnitta.com/posts/2021-11-16_r-bioinfo-flow/
+
+Demo repo
+- https://github.com/joelnitta/targets_vcf_example
 
 ---
 ## What is "bioinformatics"?
