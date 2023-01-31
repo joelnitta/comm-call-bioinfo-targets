@@ -49,14 +49,17 @@ https://joelnitta.com
 - Project Research Associate @ [Tokyo University](http://iwasakilab.k.u-tokyo.ac.jp/)
 
 - Research interests: Ecology and evolution of __ferns__
-
-- Hobbies: Running (after my 7YO!)
 ]
 
 .pull-right[
 <img src="https://github.com/joelnitta/joelnitta-site/blob/master/static/media/headers/research_img2.jpg?raw=true" alt="drawing" height="400"/>
 .small[Photo: J-Y Meyer]
 ]
+
+---
+## Blog post
+
+https://www.joelnitta.com/posts/2021-11-16_r-bioinfo-flow/
 
 ---
 ## What is "bioinformatics"?
