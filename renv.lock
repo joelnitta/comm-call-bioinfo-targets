@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.2.0",
+    "Version": "4.2.1",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -63,15 +63,10 @@
     },
     "babelwhale": {
       "Package": "babelwhale",
-      "Version": "1.0.3",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "babelwhale",
-      "RemoteUsername": "joelnitta",
-      "RemoteRef": "jnfeat",
-      "RemoteSha": "db9e5aa1e59c3f89a063961c3ba17f33c2121400",
-      "Hash": "6d2db65f48ed53a019ad2231d0bfce0f",
+      "Version": "1.1.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "52b392f242c9376841ed765608d2d872",
       "Requirements": [
         "crayon",
         "digest",
